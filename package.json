@@ -1,0 +1,25 @@
+{
+  "name": "webcrawler",
+  "version": "1.0.0",
+  "description": "WebCrawler for boot.dev",
+  "main": "index.js",
+
+  "type": "module",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CoderMuppet/we.git"
+  },
+  "keywords": [
+    "webcrawler",
+    "boot"
+  ],
+  "author": "CoderMuppet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CoderMuppet/we/issues"
+  },
+  "homepage": "https://github.com/CoderMuppet/we#readme"
+}
