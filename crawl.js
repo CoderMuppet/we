@@ -31,29 +31,67 @@ function normalizeURL(url) {
     return urls
   }
 
-  async function crawlPage(currentURL) {
-    // fetch and parse the html of the currentURL
-    console.log(`crawling ${currentURL}`)
-  
+  async function fetchHTML(url) {
     let res
     try {
-      res = await fetch(currentURL)
+      res = await fetch(url)
     } catch (err) {
       throw new Error(`Got Network error: ${err.message}`)
     }
   
     if (res.status > 399) {
-      console.log(`Got HTTP error: ${res.status} ${res.statusText}`)
-      return
+      throw new Error(`Got HTTP error: ${res.status} ${res.statusText}`)
     }
   
     const contentType = res.headers.get('content-type')
     if (!contentType || !contentType.includes('text/html')) {
-      console.log(`Got non-HTML response: ${contentType}`)
-      return
+      throw new Error(`Got non-HTML response: ${contentType}`)
     }
   
-    console.log(await res.text())
+    return res.text()
+  }
+  
+  // use default args to prime the first call
+  async function crawlPage(baseURL, currentURL = baseURL, pages = {}) {
+    // if this is an offsite URL, bail immediately
+    const currentURLObj = new URL(currentURL)
+    const baseURLObj = new URL(baseURL)
+    if (currentURLObj.hostname !== baseURLObj.hostname) {
+      return pages
+    }
+  
+    // use a consistent URL format
+    const normalizedURL = normalizeURL(currentURL)
+  
+    // if we've already visited this page
+    // just increase the count and don't repeat
+    // the http request
+    if (pages[normalizedURL] > 0) {
+      pages[normalizedURL]++
+      return pages
+    }
+  
+    // initialize this page in the map
+    // since it doesn't exist yet
+    pages[normalizedURL] = 1
+  
+    // fetch and parse the html of the currentURL
+    console.log(`crawling ${currentURL}`)
+    let html = ''
+    try {
+      html = await fetchHTML(currentURL)
+    } catch (err) {
+      console.log(`${err.message}`)
+      return pages
+    }
+  
+    // recur through the page's links
+    const nextURLs = getURLsFromHTML(html, baseURL)
+    for (const nextURL of nextURLs) {
+      pages = await crawlPage(baseURL, nextURL, pages)
+    }
+  
+    return pages
   }
   
   export { normalizeURL, getURLsFromHTML, crawlPage }
